@@ -6,6 +6,28 @@
     <title>Unity Web Player | Jubilo Games</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+
+    <!-- ✅ Add EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.emailjs.com/sdk/3.2.0/email.min.js"></script>
+    <script>
+      // ✅ Initialize EmailJS
+      (function() {
+        emailjs.init("YOUR_PUBLIC_KEY"); // ⛳ Replace with your EmailJS public key
+      })();
+
+      // ✅ Function Unity will call via SendEmailViaJS
+      function SendEmailJS(recipient, message) {
+        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+          to_email: recipient,
+          message: message
+        }).then(() => {
+          unityInstance.SendMessage('EndGameMenu', 'NotifyUser', 'Email sent successfully!');
+        }, (error) => {
+          console.error('Email failed', error);
+          unityInstance.SendMessage('EndGameMenu', 'NotifyUser', 'Failed to send email.');
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -79,7 +101,6 @@
         createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
         }).then((unityInstance) => {
-          // ✅ This exposes the instance globally
           window.unityInstance = unityInstance;
 
           document.querySelector("#unity-loading-bar").style.display = "none";
