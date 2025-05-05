@@ -10,8 +10,17 @@
     <!-- ✅ Load EmailJS SDK BEFORE Unity -->
     <script src="https://cdn.emailjs.com/sdk/3.2.0/email.min.js"></script>
     <script>
+      // 🟢 Track readiness
+      window.emailjsReady = false;
+
       window.addEventListener('DOMContentLoaded', function () {
-        emailjs.init("JCfEnadXLBXD3_Ds8"); // Replace with your real public key if needed
+        if (typeof emailjs !== 'undefined') {
+          emailjs.init("JCfEnadXLBXD3_Ds8"); // Your public key
+          window.emailjsReady = true;
+          console.log("✅ EmailJS initialized");
+        } else {
+          console.error("❌ EmailJS failed to load.");
+        }
       });
     </script>
   </head>
