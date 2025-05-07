@@ -1,208 +1,55 @@
-<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Unity Web Player | Jubilo Games</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css" />
+<script>
+  mergeInto(LibraryManager.library, {
+    SendEmailViaJS: function (recipientPtr, messagePtr, namePtr, scorePtr, imageBase64Ptr) {
+      if (typeof emailjs === 'undefined' || !window.emailjsReady) {
+        console.error("❌ EmailJS is not ready.");
+        return;
+      }
 
-    <!-- ✅ EmailJS -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script>
-      window.emailjsReady = false;
+      const recipient = UTF8ToString(recipientPtr);
+      const message = UTF8ToString(messagePtr);
+      const name = UTF8ToString(namePtr);
+      const score = UTF8ToString(scorePtr);
+      const base64 = UTF8ToString(imageBase64Ptr);
 
-      window.addEventListener('DOMContentLoaded', function () {
-        if (typeof emailjs !== 'undefined') {
-          emailjs.init("JCfEnadXLBXD3_Ds8");
-          window.emailjsReady = true;
-          console.log("✅ EmailJS initialized");
-        }
-      });
+      console.log("📤 Uploading selfie to Imgur...");
 
-      // ✅ Imgur + EmailJS integration
-      mergeInto(LibraryManager.library, {
-        SendEmailViaJS: function (recipientPtr, messagePtr, namePtr, scorePtr, imageBase64Ptr) {
-          if (!window.emailjsReady) {
-            console.error("❌ EmailJS not ready");
-            return;
-          }
-
-          const recipient = UTF8ToString(recipientPtr);
-          const message = UTF8ToString(messagePtr);
-          const name = UTF8ToString(namePtr);
-          const score = UTF8ToString(scorePtr);
-          const base64 = UTF8ToString(imageBase64Ptr);
-
-          console.log("📤 Uploading selfie to Imgur...");
-
-          fetch("https://api.imgur.com/3/image", {
-            method: "POST",
-            headers: {
-              Authorization: "Client-ID cb5e2bb920d6bf7",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ image: base64, type: "base64" }),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (!data.success) throw new Error("Imgur upload failed");
-              const imageUrl = data.data.link;
-              console.log("✅ Uploaded to Imgur:", imageUrl);
-
-              return emailjs.send(
-                "service_0x00k3y",
-                "template_ph5qn3g",
-                {
-                  email: recipient,
-                  name: name,
-                  score: score,
-                  message: message,
-                  image_url: imageUrl,
-                },
-                "JCfEnadXLBXD3_Ds8"
-              );
-            })
-            .then((res) => {
-              console.log("✅ Email sent", res.status);
-              unityInstance.SendMessage("EndGameMenu", "NotifyUser", "Email sent successfully!");
-            })
-            .catch((err) => {
-              console.error("❌ Error:", err);
-              unityInstance.SendMessage("EndGameMenu", "NotifyUser", "Failed to send email.");
-            });
+      fetch('https://api.imgur.com/3/image', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Client-ID a21f776f6b3fe85', // ✅ Replace with your actual Client ID
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          image: base64,
+          type: 'base64',
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.success || !data.data.link) {
+          throw new Error("Imgur upload failed");
+        }
+
+        const imageUrl = data.data.link;
+        console.log("✅ Uploaded to Imgur:", imageUrl);
+
+        return emailjs.send('service_0x00k3y', 'template_ph5qn3g', {
+          email: recipient,
+          name: name,
+          score: score,
+          message: message,
+          image_url: imageUrl,
+        }, 'JCfEnadXLBXD3_Ds8');
+      })
+      .then(response => {
+        console.log("✅ EmailJS success:", response.status);
+        unityInstance.SendMessage('EndGameMenu', 'NotifyUser', 'Email sent successfully!');
+      })
+      .catch(error => {
+        console.error("❌ Error sending email or uploading:", error);
+        unityInstance.SendMessage('EndGameMenu', 'NotifyUser', 'Failed to send email.');
       });
-    </script>
-
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        background: #ffffff;
-        overflow: hidden;
-      }
-
-      #unity-container {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-      }
-
-      #unity-canvas {
-        width: 100vw;
-        height: 100vh;
-        max-width: 100%;
-        background: #000;
-        object-fit: contain;
-      }
-
-      #unity-loading-bar {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10;
-      }
-
-      #unity-footer {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        text-align: center;
-        background: #fff;
-        padding: 5px 0;
-      }
-
-      #unity-fullscreen-button {
-        display: inline-block;
-        cursor: pointer;
-        margin-top: 5px;
-      }
-    </style>
-  </head>
-
-  <body>
-    <div id="unity-container">
-      <canvas id="unity-canvas" tabindex="-1"></canvas>
-
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-
-      <div id="unity-warning"></div>
-
-      <div id="unity-footer">
-        <div id="unity-logo-title-footer">Jubilo Games</div>
-        <div id="unity-fullscreen-button">🔳 Fullscreen</div>
-      </div>
-    </div>
-
-    <script>
-      var canvas = document.querySelector("#unity-canvas");
-
-      function unityShowBanner(msg, type) {
-        var warningBanner = document.querySelector("#unity-warning");
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? "block" : "none";
-        }
-        var div = document.createElement("div");
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type === "error") div.style = "background: red; padding: 10px;";
-        else {
-          if (type === "warning") div.style = "background: yellow; padding: 10px;";
-          setTimeout(() => {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
-
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/Jubilo_idanMaor_Wedding.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/Jubilo_idanMaor_Wedding.data",
-        frameworkUrl: buildUrl + "/Jubilo_idanMaor_Wedding.framework.js",
-        codeUrl: buildUrl + "/Jubilo_idanMaor_Wedding.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Jubilo Games",
-        productName: "Jubilo Wedding",
-        productVersion: "1.0",
-        showBanner: unityShowBanner,
-      };
-
-      document.querySelector("#unity-loading-bar").style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          window.unityInstance = unityInstance;
-          document.querySelector("#unity-loading-bar").style.display = "none";
-          document.querySelector("#unity-fullscreen-button").onclick = () => {
-            unityInstance.SetFullscreen(1);
-          };
-        }).catch((message) => {
-          alert(message);
-        });
-      };
-
-      document.body.appendChild(script);
-    </script>
-  </body>
-</html>
+    }
+  });
+</script>
