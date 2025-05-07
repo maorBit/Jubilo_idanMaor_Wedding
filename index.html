@@ -7,7 +7,7 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico" />
     <link rel="stylesheet" href="TemplateData/style.css" />
 
-    <!-- ✅ Load EmailJS -->
+    <!-- ✅ EmailJS -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
       window.emailjsReady = false;
@@ -20,7 +20,7 @@
         }
       });
 
-      // ✅ Email and Imgur integration
+      // ✅ Imgur + EmailJS integration
       mergeInto(LibraryManager.library, {
         SendEmailViaJS: function (recipientPtr, messagePtr, namePtr, scorePtr, imageBase64Ptr) {
           if (!window.emailjsReady) {
@@ -80,32 +80,52 @@
         margin: 0;
         padding: 0;
         height: 100%;
+        width: 100%;
         background: #ffffff;
+        overflow: hidden;
       }
 
       #unity-container {
         position: absolute;
-        top: 0;
-        bottom: 0;
         width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
         display: flex;
         justify-content: center;
         align-items: center;
+        flex-direction: column;
       }
 
       #unity-canvas {
-        width: 100%;
-        max-width: 540px;
-        height: auto;
-        aspect-ratio: 9 / 16;
+        width: 100vw;
+        height: 100vh;
+        max-width: 100%;
         background: #000;
+        object-fit: contain;
       }
 
       #unity-loading-bar {
         position: absolute;
-        top: 10px;
+        top: 50%;
         left: 50%;
-        transform: translateX(-50%);
+        transform: translate(-50%, -50%);
+        z-index: 10;
+      }
+
+      #unity-footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+        background: #fff;
+        padding: 5px 0;
+      }
+
+      #unity-fullscreen-button {
+        display: inline-block;
+        cursor: pointer;
+        margin-top: 5px;
       }
     </style>
   </head>
@@ -113,17 +133,19 @@
   <body>
     <div id="unity-container">
       <canvas id="unity-canvas" tabindex="-1"></canvas>
+
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
+
       <div id="unity-warning"></div>
+
       <div id="unity-footer">
-        <div id="unity-logo-title-footer"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Jubilo Games</div>
+        <div id="unity-logo-title-footer">Jubilo Games</div>
+        <div id="unity-fullscreen-button">🔳 Fullscreen</div>
       </div>
     </div>
 
@@ -138,10 +160,10 @@
         var div = document.createElement("div");
         div.innerHTML = msg;
         warningBanner.appendChild(div);
-        if (type == "error") div.style = "background: red; padding: 10px;";
+        if (type === "error") div.style = "background: red; padding: 10px;";
         else {
-          if (type == "warning") div.style = "background: yellow; padding: 10px;";
-          setTimeout(function () {
+          if (type === "warning") div.style = "background: yellow; padding: 10px;";
+          setTimeout(() => {
             warningBanner.removeChild(div);
             updateBannerVisibility();
           }, 5000);
