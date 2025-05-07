@@ -166,14 +166,14 @@
     document.body.appendChild(script);
 
     function sendEmailToUnity() {
-      const email = document.getElementById("emailInput").value;
-      if (email && window.unityInstance) {
-        unityInstance.SendMessage("EndGameMenu", "SetEmailTarget", email);
-        console.log("📨 Email target sent to Unity:", email);
-      } else {
-        alert("Please enter a valid email address");
-      }
-    }
+  const email = "maorr.bit@gmail.com";
+  if (email && window.unityInstance) {
+    unityInstance.SendMessage("EndGameMenu", "SetEmailTarget", email);
+    console.log("📨 Email target sent to Unity:", email);
+  } else {
+    alert("Please enter a valid email address");
+  }
+ }
   </script>
 </body>
 </html>
